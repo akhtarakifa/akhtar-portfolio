@@ -13,8 +13,11 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [activeSection, setActiveSection] = useState('home')
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 })
+  const [isScrolling, setIsScrolling] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
   const navRef = useRef(null)
   const linkRefs = useRef({})
+  const scrollTimeoutRef = useRef(null)
 
   // Scroll blur effect
   useEffect(() => {
@@ -33,16 +36,22 @@ export default function Navbar() {
       if (!el) return
       const observer = new IntersectionObserver(
         ([entry]) => {
-          if (entry.isIntersecting) setActiveSection(id)
+          // Only update active section if not currently scrolling programmatically
+          if (entry.isIntersecting && !isScrolling) {
+            setActiveSection(id)
+          }
         },
-        { rootMargin: '-40% 0px -55% 0px', threshold: 0 }
+        { 
+          rootMargin: '-20% 0px -70% 0px', 
+          threshold: 0.3 
+        }
       )
       observer.observe(el)
       observers.push(observer)
     })
 
     return () => observers.forEach(o => o.disconnect())
-  }, [])
+  }, [isScrolling])
 
   // Sliding indicator
   useEffect(() => {
@@ -58,101 +67,229 @@ export default function Navbar() {
     }
   }, [activeSection])
 
+  // Update indicator when window resizes
+  useEffect(() => {
+    const handleResize = () => {
+      const el = linkRefs.current[activeSection]
+      const nav = navRef.current
+      if (el && nav) {
+        const navRect = nav.getBoundingClientRect()
+        const elRect = el.getBoundingClientRect()
+        setIndicatorStyle({
+          left: elRect.left - navRect.left,
+          width: elRect.width,
+        })
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [activeSection])
+
+  // Cleanup scroll timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
+      }
+    }
+  }, [])
+
   const handleClick = (e, href) => {
     e.preventDefault()
+    const targetId = href.slice(1)
+    setIsScrolling(true)
+    setActiveSection(targetId)
+    setMobileOpen(false)
+
+    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current)
+
     const el = document.querySelector(href)
-    if (el) el.scrollIntoView({ behavior: 'smooth' })
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      scrollTimeoutRef.current = setTimeout(() => setIsScrolling(false), 1000)
+    }
   }
 
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled
-          ? 'bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-[#2a2218]'
-          : 'bg-transparent'
-      }`}
-    >
-      <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-        {/* Logo */}
-        <a
-          href="#home"
-          onClick={e => handleClick(e, '#home')}
-          className="font-heading font-bold text-xl text-[#f5f0e8] tracking-tight hover:text-[#ebdcc4] transition-colors duration-300"
-          style={{ letterSpacing: '-0.03em' }}
+    <>
+      {/* Dynamic Island Container */}
+      <nav className="fixed top-4 sm:top-6 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-4xl">
+        <div
+          className={`
+            relative overflow-hidden w-full
+            transition-all duration-500 ease-out
+            ${scrolled ? 'shadow-2xl shadow-[#ebdcc4]/10' : 'shadow-lg shadow-black/20'}
+          `}
+          style={{
+            background: scrolled 
+              ? 'linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(10, 10, 10, 0.98) 100%)'
+              : 'linear-gradient(135deg, rgba(20, 20, 20, 0.8) 0%, rgba(10, 10, 10, 0.9) 100%)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(235, 220, 196, 0.1)',
+            borderRadius: '50px',
+          }}
         >
-          akhtarakifa<span className="text-[#ebdcc4]"></span>
-        </a>
-
-        {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-1 relative" ref={navRef}>
-          {navLinks.map(link => {
-            const id = link.href.slice(1)
-            return (
-              <a
-                key={link.label}
-                href={link.href}
-                ref={el => (linkRefs.current[id] = el)}
-                onClick={e => handleClick(e, link.href)}
-                className={`px-4 py-2 text-sm font-medium transition-colors duration-300 rounded-md ${
-                  activeSection === id
-                    ? 'text-[#ebdcc4]'
-                    : 'text-[#a09080] hover:text-[#f5f0e8]'
-                }`}
-              >
-                {link.label}
-              </a>
-            )
-          })}
-          {/* Sliding underline */}
-          <span
-            className="absolute bottom-0 h-0.5 bg-[#ebdcc4] rounded-full transition-all duration-300 ease-out"
-            style={{ left: indicatorStyle.left, width: indicatorStyle.width }}
+          {/* Glow effect */}
+          <div 
+            className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-500"
+            style={{
+              background: 'radial-gradient(circle at center, rgba(235, 220, 196, 0.05) 0%, transparent 70%)',
+              pointerEvents: 'none',
+            }}
           />
+
+          <div className="relative px-4 sm:px-6 py-3 flex items-center justify-between">
+            {/* Logo */}
+            <a
+              className="font-heading font-bold text-base sm:text-lg text-[#f5f0e8]"
+              style={{ letterSpacing: '-0.03em' }}
+            >
+              akhtarakifa
+            </a>
+
+            {/* Desktop nav */}
+            <div className="hidden lg:flex items-center gap-2 relative" ref={navRef}>
+              {navLinks.map(link => {
+                const id = link.href.slice(1)
+                return (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    ref={el => (linkRefs.current[id] = el)}
+                    onClick={e => handleClick(e, link.href)}
+                    className={`
+                      relative px-4 py-2 text-sm font-medium 
+                      transition-all duration-300 rounded-full
+                      hover:scale-105 active:scale-95
+                      ${activeSection === id
+                        ? 'text-[#0a0a0a]'
+                        : 'text-[#a09080] hover:text-[#f5f0e8]'
+                      }
+                    `}
+                  >
+                    {activeSection === id && (
+                      <span
+                        className="absolute inset-0 bg-[#ebdcc4] rounded-full -z-10"
+                        style={{ animation: 'slideIn 0.3s ease-out' }}
+                      />
+                    )}
+                    {link.label}
+                  </a>
+                )
+              })}
+            </div>
+
+            {/* Tablet nav */}
+            <div className="hidden md:flex lg:hidden items-center gap-1 relative" ref={navRef}>
+              {navLinks.map(link => {
+                const id = link.href.slice(1)
+                return (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    ref={el => (linkRefs.current[id] = el)}
+                    onClick={e => handleClick(e, link.href)}
+                    className={`
+                      relative px-3 py-2 text-xs font-medium 
+                      transition-all duration-300 rounded-full
+                      hover:scale-105 active:scale-95
+                      ${activeSection === id
+                        ? 'text-[#0a0a0a]'
+                        : 'text-[#a09080] hover:text-[#f5f0e8]'
+                      }
+                    `}
+                  >
+                    {activeSection === id && (
+                      <span
+                        className="absolute inset-0 bg-[#ebdcc4] rounded-full -z-10"
+                        style={{ animation: 'slideIn 0.3s ease-out' }}
+                      />
+                    )}
+                    {link.label}
+                  </a>
+                )
+              })}
+            </div>
+
+            {/* Mobile hamburger button — only the button, no dropdown here */}
+            <button
+              onClick={() => setMobileOpen(prev => !prev)}
+              className="md:hidden p-2 text-[#a09080] hover:text-[#ebdcc4] transition-all duration-300 hover:scale-110 active:scale-95"
+              aria-label="Toggle menu"
+            >
+              <div className="w-5 flex flex-col gap-1.5">
+                <span className={`block h-0.5 bg-current transition-all duration-300 rounded-full ${mobileOpen ? 'rotate-45 translate-y-2' : ''}`} />
+                <span className={`block h-0.5 bg-current transition-all duration-300 rounded-full ${mobileOpen ? 'opacity-0' : ''}`} />
+                <span className={`block h-0.5 bg-current transition-all duration-300 rounded-full ${mobileOpen ? '-rotate-45 -translate-y-2' : ''}`} />
+              </div>
+            </button>
+          </div>
         </div>
 
-        {/* Mobile menu button */}
-        <MobileMenu navLinks={navLinks} activeSection={activeSection} handleClick={handleClick} />
-      </div>
-    </nav>
-  )
-}
+        {/* Mobile dropdown — outside overflow-hidden div so it's not clipped */}
+        {mobileOpen && (
+          <div
+            className="md:hidden mt-2 mx-auto w-full animate-slideDown"
+            style={{
+              background: 'linear-gradient(135deg, rgba(20, 20, 20, 0.98) 0%, rgba(10, 10, 10, 0.99) 100%)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(235, 220, 196, 0.15)',
+              borderRadius: '20px',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+            }}
+          >
+            <div className="p-3 flex flex-col gap-1">
+              {navLinks.map(link => {
+                const id = link.href.slice(1)
+                return (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    onClick={e => handleClick(e, link.href)}
+                    className={`
+                      px-4 py-3 text-sm font-medium rounded-xl text-center
+                      transition-all duration-200 active:scale-95
+                      ${activeSection === id
+                        ? 'bg-[#ebdcc4] text-[#0a0a0a]'
+                        : 'text-[#a09080] hover:bg-[#1a1a1a] hover:text-[#f5f0e8]'
+                      }
+                    `}
+                  >
+                    {link.label}
+                  </a>
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </nav>
 
-function MobileMenu({ navLinks, activeSection, handleClick }) {
-  const [open, setOpen] = useState(false)
-
-  return (
-    <div className="md:hidden">
-      <button
-        onClick={() => setOpen(!open)}
-        className="p-2 text-[#a09080] hover:text-[#ebdcc4] transition-colors"
-        aria-label="Toggle menu"
-      >
-        <div className="w-5 flex flex-col gap-1.5">
-          <span className={`block h-px bg-current transition-all duration-300 ${open ? 'rotate-45 translate-y-2' : ''}`} />
-          <span className={`block h-px bg-current transition-all duration-300 ${open ? 'opacity-0' : ''}`} />
-          <span className={`block h-px bg-current transition-all duration-300 ${open ? '-rotate-45 -translate-y-2' : ''}`} />
-        </div>
-      </button>
-
-      {open && (
-        <div className="absolute top-full left-0 right-0 bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-[#2a2218] py-4 px-6 flex flex-col gap-2">
-          {navLinks.map(link => {
-            const id = link.href.slice(1)
-            return (
-              <a
-                key={link.label}
-                href={link.href}
-                onClick={e => { handleClick(e, link.href); setOpen(false) }}
-                className={`py-2 text-sm font-medium transition-colors duration-200 ${
-                  activeSection === id ? 'text-[#ebdcc4]' : 'text-[#a09080]'
-                }`}
-              >
-                {link.label}
-              </a>
-            )
-          })}
-        </div>
+      {/* Backdrop for mobile */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
       )}
-    </div>
+
+      <style>{`
+        @keyframes slideIn {
+          from { transform: scale(0.8); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
+        }
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-10px) scale(0.97); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animate-slideDown {
+          animation: slideDown 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+      `}</style>
+    </>
   )
 }
+
+

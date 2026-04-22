@@ -76,7 +76,7 @@ export default function Hero() {
               data-aos="fade-up"
               data-aos-delay="300"
             >
-              I'm a front-end focused web developer passionate about building clean, user-friendly
+              My full name is Akhtar Akifa Sakhi. I'm a front-end focused web developer passionate about building clean, user-friendly
               interfaces that leave a lasting impression. With a strong foundation in modern web
               technologies, I'm on a mission to grow into a well-rounded software engineer who
               bridges design and engineering seamlessly.
@@ -147,13 +147,14 @@ export default function Hero() {
 
         </div>
 
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[#a09080] animate-bounce">
-          <span className="text-xs tracking-widest uppercase">Scroll</span>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
+      </div>
+
+      {/* Scroll indicator — outside the max-w container so it centers relative to the full section */}
+      <div className="absolute bottom-4 sm:bottom-8 left-0 right-0 flex flex-col items-center gap-2 text-[#a09080] animate-bounce">
+        <span className="text-xs tracking-widest uppercase">Scroll</span>
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
+        </svg>
       </div>
     </section>
   )

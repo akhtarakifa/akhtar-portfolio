@@ -55,16 +55,32 @@ export default function About() {
               ))}
             </div>
 
-            {/* Download CV */}
-            <a
-              href="#"
-              className="btn-outline inline-flex items-center gap-2 text-sm"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              Download CV
-            </a>
+            {/* Buttons */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Download CV */}
+              <a
+                href="#"
+                className="btn-outline flex items-center justify-center gap-2 text-sm"
+              >
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span>Download CV</span>
+              </a>
+
+              {/* River of Life */}
+              <a
+                href="https://drive.google.com/file/d/1jrQb4ELVio-7kZbSIFq5c74MrSMXmdhb/view?usp=sharing"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-outline flex items-center justify-center gap-2 text-sm"
+              >
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+                <span>River of Life</span>
+              </a>
+            </div>
           </div>
 
           {/* Right: Education & Skills */}
