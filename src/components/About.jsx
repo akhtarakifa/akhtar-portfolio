@@ -3,6 +3,16 @@ const hardSkills = ['Programming', 'Graphic Design']
 
 const education = [
   {
+    school: 'TK Negeri Pembina Gubug',
+    period: '2013 – 2015',
+    detail: 'Kindergarten School',
+  },
+  {
+    school: 'SD Negeri 1 Gubug',
+    period: '2015 – 2021',
+    detail: 'Elementary School',
+  },
+  {
     school: 'SMP Negeri 1 Gubug',
     period: '2021 – 2024',
     detail: 'Junior High School',
